@@ -26,3 +26,6 @@ docs/
 
 # jetBrains IDE ignores
 .idea
+/dist/
+/package-lock.json
+/pixi-picture.iml
