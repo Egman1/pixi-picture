@@ -1,19 +1,48 @@
 namespace pixi_picture {
     export namespace blends {
+        export enum CUSTOM_BLEND_MODES {
+            MULTIPLY = 5
+        }
+
         export const NPM_BLEND =
-            `if (b_src.a == 0.0) {
-    gl_FragColor = vec4(0, 0, 0, 0);
-    return;
-}
-vec3 Cb = b_src.rgb / b_src.a, Cs;
-if (b_dest.a > 0.0) {
-    Cs = b_dest.rgb / b_dest.a;
-}
-%NPM_BLEND%
-b_res.a = b_src.a + b_dest.a * (1.0-b_src.a);
-b_res.rgb = (1.0 - b_src.a) * Cs + b_src.a * B;
-b_res.rgb *= b_res.a;
-`;
+        `if (b_src.a == 0.0) {
+            gl_FragColor = vec4(0, 0, 0, 0);
+            return;
+        }
+        vec3 Cb = b_src.rgb / b_src.a, Cs;
+        if (b_dest.a > 0.0) {
+            Cs = b_dest.rgb / b_dest.a;
+        }
+        
+        float outOp = b_src.a + b_dest.a * (1.0 - b_src.a);
+        vec3 B = b_src.rgb;
+        float cCA, eCA, result, color;
+        if (b_dest.a > 0.0) {
+            %NPM_BLEND%
+        }
+        b_res.rgb = B;
+        b_res.a = outOp;
+        `;
+
+        export const MULTIPLY_PART =
+            `cCA = b_dest.r;
+            eCA = b_src.r;
+            result = cCA * eCA;
+            color = (1.0 - b_src.a / outOp) * cCA + b_src.a / outOp * ((1.0 - b_dest.a) * eCA + b_dest.a * result);
+            B.r = color;
+            
+            cCA = b_dest.g;
+            eCA = b_src.g;
+            result = cCA * eCA;
+            color = (1.0 - b_src.a / outOp) * cCA + b_src.a / outOp * ((1.0 - b_dest.a) * eCA + b_dest.a * result);
+            B.g = color;
+            
+            cCA = b_dest.b;
+            eCA = b_src.b;
+            result = cCA * eCA;
+            color = (1.0 - b_src.a / outOp) * cCA + b_src.a / outOp * ((1.0 - b_dest.a) * eCA + b_dest.a * result);
+            B.b = color;
+        `;
 
         //reverse hardlight
         export const OVERLAY_PART =
@@ -114,20 +143,14 @@ else
 }
 `;
 
-        export const MULTIPLY_FULL =
-            `if (dest.a > 0.0) {
-   b_res.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
-   b_res.a = min(src.a + dest.a - src.a * dest.a, 1.0);
-   b_res.rgb *= mult.a;
-}
-`;
+        export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, MULTIPLY_PART);
         export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, OVERLAY_PART);
         export const HARDLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HARDLIGHT_PART);
         export const SOFTLIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, SOFTLIGHT_PART);
 
         export const blendFullArray: Array<string> = [];
 
-        blendFullArray[PIXI.BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
+        blendFullArray[CUSTOM_BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
         blendFullArray[PIXI.BLEND_MODES.OVERLAY] = OVERLAY_FULL;
         blendFullArray[PIXI.BLEND_MODES.HARD_LIGHT] = HARDLIGHT_FULL;
         blendFullArray[PIXI.BLEND_MODES.SOFT_LIGHT] = SOFTLIGHT_FULL;
