@@ -1,32 +1,5 @@
 namespace pixi_picture {
     export namespace blends {
-        export enum CUSTOM_BLEND_MODES {
-            DARKEN = 5,
-            MULTIPLY,
-            COLOR_BURN,
-            LINEAR_BURN,
-            DARKER_COLOR,
-            LIGHTEN,
-            SCREEN,
-            COLOR_DODGE,
-            LINEAR_DODGE,
-            LIGHTER_COLOR,
-            OVERLAY,
-            SOFT_LIGHT,
-            HARD_LIGHT,
-            VIVID_LIGHT,
-            LINEAR_LIGHT,
-            PIN_LIGHT,
-            HARD_MIX,
-            DIFFERENCE,
-            EXCLUSION,
-            SUBTRACT,
-            DIVIDE,
-            HUE,
-            SATURATION,
-            COLOR,
-            LUMINOSITY
-        }
 
         export const NPM_BLEND =
         `if (b_src.a == 0.0) {
@@ -175,6 +148,20 @@ namespace pixi_picture {
                 B.b = color;
             }`;
 
+        export const OVERLAY_PART =
+            `Cb = b_src.%rgb%;
+            Cs = b_dest.%rgb%;
+            
+            if (Cs <= 0.5) {
+                result = Cb * 2.0 * Cs;
+            } else {
+                D = 2.0 * Cs - 1.0;
+                result = Cb + D - (Cb * D);
+            }
+            
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
         export const SOFT_LIGHT_PART =
             `Cb = b_dest.%rgb%;
             Cs = b_src.%rgb%;
@@ -237,6 +224,79 @@ namespace pixi_picture {
                 }
             }`;
 
+        export const LINEAR_LIGHT_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            
+            if (Cs < 0.5) {
+                D = 2.0 * Cs;
+                
+                result = 0.0;
+                if((D + Cb) < 1.0) {
+                    result = 0.0;
+                } else {
+                    result = D + Cb - 1.0;
+                }
+            } else {
+                D = 2.0 * (Cs - 0.5);
+                
+                result = min(1.0, (D + Cb));
+             }
+             
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
+        export const PIN_LIGHT_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            
+            if (Cs < 0.5) {
+                D = 2.0 * Cs;
+                result = min(Cb, D);
+            } else {
+                D = 2.0 * (Cs - 0.5);
+                result = max(Cb, D);
+             }
+             
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
+        export const HARD_MIX_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            
+            if (Cs < 0.5) {
+                D = 2.0 * Cs;
+                
+                if(Cb == 1.0) {
+                    B.%rgb% = 1.0;
+                } else if(D == 0.0) {
+                    B.%rgb% = 0.0;
+                } else {
+                    result = 1.0 - min(1.0, (1.0 - Cb) / D);
+                    color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * D + b_dest.a * result);
+                    B.%rgb% = color;
+                }
+            } else {
+                D = 2.0 * (Cs - 0.5);
+                
+                if(Cb == 0.0) {
+                    B.%rgb% = 0.0;
+                } else if(D == 1.0) {
+                    B.%rgb% = 1.0;
+                } else {
+                    result = min(1.0, Cb / (1.0 - D));
+                    color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * D + b_dest.a * result);
+                    B.%rgb% = color;
+                }
+            }
+            
+            if(B.%rgb% < 0.5) {
+                B.%rgb% = 0.0;
+            } else {
+                B.%rgb% = 1.0;
+            }`;
+
 
         export const DARKEN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DARKEN_PART.replace(/%rgb%/g, 'r'), DARKEN_PART.replace(/%rgb%/g, 'g'), DARKEN_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [MULTIPLY_PART.replace(/%rgb%/g, 'r'), MULTIPLY_PART.replace(/%rgb%/g, 'g'), MULTIPLY_PART.replace(/%rgb%/g, 'b')].join('\n'));
@@ -248,25 +308,33 @@ namespace pixi_picture {
         export const COLOR_DODGE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [COLOR_DODGE_PART.replace(/%rgb%/g, 'r'), COLOR_DODGE_PART.replace(/%rgb%/g, 'g'), COLOR_DODGE_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const LINEAR_DODGE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [LINEAR_DODGE_PART.replace(/%rgb%/g, 'r'), LINEAR_DODGE_PART.replace(/%rgb%/g, 'g'), LINEAR_DODGE_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const LIGHTER_COLOR_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, LIGHTER_COLOR_PART);
+        export const OVERLAY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [OVERLAY_PART.replace(/%rgb%/g, 'r'), OVERLAY_PART.replace(/%rgb%/g, 'g'), OVERLAY_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const SOFT_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [SOFT_LIGHT_PART.replace(/%rgb%/g, 'r'), SOFT_LIGHT_PART.replace(/%rgb%/g, 'g'), SOFT_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const HARD_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [HARD_LIGHT_PART.replace(/%rgb%/g, 'r'), HARD_LIGHT_PART.replace(/%rgb%/g, 'g'), HARD_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const VIVID_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [VIVID_LIGHT_PART.replace(/%rgb%/g, 'r'), VIVID_LIGHT_PART.replace(/%rgb%/g, 'g'), VIVID_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const LINEAR_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [LINEAR_LIGHT_PART.replace(/%rgb%/g, 'r'), LINEAR_LIGHT_PART.replace(/%rgb%/g, 'g'), LINEAR_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const PIN_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [PIN_LIGHT_PART.replace(/%rgb%/g, 'r'), PIN_LIGHT_PART.replace(/%rgb%/g, 'g'), PIN_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const HARD_MIX_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [HARD_MIX_PART.replace(/%rgb%/g, 'r'), HARD_MIX_PART.replace(/%rgb%/g, 'g'), HARD_MIX_PART.replace(/%rgb%/g, 'b')].join('\n'));
 
         export const blendFullArray: Array<string> = [];
 
-        blendFullArray[CUSTOM_BLEND_MODES.DARKEN] = DARKEN_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.COLOR_BURN] = COLOR_BURN_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.LINEAR_BURN] = LINEAR_BURN_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.DARKER_COLOR] = DARKER_COLOR_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.LIGHTEN] = LIGHTEN_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.SCREEN] = SCREEN_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.COLOR_DODGE] = COLOR_DODGE_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.LINEAR_DODGE] = LINEAR_DODGE_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.LIGHTER_COLOR] = LIGHTER_COLOR_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.SOFT_LIGHT] = SOFT_LIGHT_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.HARD_LIGHT] = HARD_LIGHT_FULL;
-        blendFullArray[CUSTOM_BLEND_MODES.VIVID_LIGHT] = VIVID_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.DARKEN] = DARKEN_FULL;
+        blendFullArray[PIXI.BLEND_MODES.MULTIPLY] = MULTIPLY_FULL;
+        blendFullArray[PIXI.BLEND_MODES.COLOR_BURN] = COLOR_BURN_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LINEAR_BURN] = LINEAR_BURN_FULL;
+        blendFullArray[PIXI.BLEND_MODES.DARKER_COLOR] = DARKER_COLOR_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LIGHTEN] = LIGHTEN_FULL;
+        blendFullArray[PIXI.BLEND_MODES.SCREEN] = SCREEN_FULL;
+        blendFullArray[PIXI.BLEND_MODES.COLOR_DODGE] = COLOR_DODGE_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LINEAR_DODGE] = LINEAR_DODGE_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LIGHTER_COLOR] = LIGHTER_COLOR_FULL;
+        blendFullArray[PIXI.BLEND_MODES.OVERLAY] = OVERLAY_FULL;
+        blendFullArray[PIXI.BLEND_MODES.SOFT_LIGHT] = SOFT_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.HARD_LIGHT] = HARD_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.VIVID_LIGHT] = VIVID_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LINEAR_LIGHT] = LINEAR_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.PIN_LIGHT] = PIN_LIGHT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.HARD_MIX] = HARD_MIX_FULL;
     }
 
     let filterCache: Array<BlendFilter> = [];
