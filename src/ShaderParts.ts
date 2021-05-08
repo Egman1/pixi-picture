@@ -297,6 +297,34 @@ namespace pixi_picture {
                 B.%rgb% = 1.0;
             }`;
 
+        export const DIFFERENCE_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            result = abs(Cb - Cs);
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
+        export const EXCLUSION_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            result = Cs + Cb - 2.0 * Cs * Cb;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
+        export const SUBTRACT_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            result = max(0.0, Cb - Cs);
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
+        export const DIVIDE_PART =
+            `Cb = b_dest.%rgb%;
+            Cs = b_src.%rgb%;
+            result = max(0.0, min(1.0, Cb / Cs));
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.%rgb% = color;`;
+
 
         export const DARKEN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DARKEN_PART.replace(/%rgb%/g, 'r'), DARKEN_PART.replace(/%rgb%/g, 'g'), DARKEN_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [MULTIPLY_PART.replace(/%rgb%/g, 'r'), MULTIPLY_PART.replace(/%rgb%/g, 'g'), MULTIPLY_PART.replace(/%rgb%/g, 'b')].join('\n'));
@@ -315,6 +343,10 @@ namespace pixi_picture {
         export const LINEAR_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [LINEAR_LIGHT_PART.replace(/%rgb%/g, 'r'), LINEAR_LIGHT_PART.replace(/%rgb%/g, 'g'), LINEAR_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const PIN_LIGHT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [PIN_LIGHT_PART.replace(/%rgb%/g, 'r'), PIN_LIGHT_PART.replace(/%rgb%/g, 'g'), PIN_LIGHT_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const HARD_MIX_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [HARD_MIX_PART.replace(/%rgb%/g, 'r'), HARD_MIX_PART.replace(/%rgb%/g, 'g'), HARD_MIX_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const DIFFERENCE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DIFFERENCE_PART.replace(/%rgb%/g, 'r'), DIFFERENCE_PART.replace(/%rgb%/g, 'g'), DIFFERENCE_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const EXCLUSION_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [EXCLUSION_PART.replace(/%rgb%/g, 'r'), EXCLUSION_PART.replace(/%rgb%/g, 'g'), EXCLUSION_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const SUBTRACT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [SUBTRACT_PART.replace(/%rgb%/g, 'r'), SUBTRACT_PART.replace(/%rgb%/g, 'g'), SUBTRACT_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const DIVIDE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DIVIDE_PART.replace(/%rgb%/g, 'r'), DIVIDE_PART.replace(/%rgb%/g, 'g'), DIVIDE_PART.replace(/%rgb%/g, 'b')].join('\n'));
 
         export const blendFullArray: Array<string> = [];
 
@@ -335,6 +367,10 @@ namespace pixi_picture {
         blendFullArray[PIXI.BLEND_MODES.LINEAR_LIGHT] = LINEAR_LIGHT_FULL;
         blendFullArray[PIXI.BLEND_MODES.PIN_LIGHT] = PIN_LIGHT_FULL;
         blendFullArray[PIXI.BLEND_MODES.HARD_MIX] = HARD_MIX_FULL;
+        blendFullArray[PIXI.BLEND_MODES.DIFFERENCE] = DIFFERENCE_FULL;
+        blendFullArray[PIXI.BLEND_MODES.EXCLUSION] = EXCLUSION_FULL;
+        blendFullArray[PIXI.BLEND_MODES.SUBTRACT] = SUBTRACT_FULL;
+        blendFullArray[PIXI.BLEND_MODES.DIVIDE] = DIVIDE_FULL;
     }
 
     let filterCache: Array<BlendFilter> = [];
