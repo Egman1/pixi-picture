@@ -326,6 +326,159 @@ namespace pixi_picture {
             B.%rgb% = color;`;
 
 
+
+
+        //float cColors = b_dest.r + b_dest.g + b_dest.b
+        // float eColors = b_src.r + b_src.g + b_src.b
+
+        // color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+        // B.r = color;
+        export const HUE_PART =
+            `
+            // lum(cColorF)
+            float lum_cColors = 0.3 * b_dest.r + 0.59 * b_dest.g + 0.11 * b_dest.b;
+                    
+            float max3 = max(b_dest.r, max(b_dest.g, b_dest.b));
+            float min3 = min(b_dest.r, min(b_dest.g, b_dest.b));
+            // sat(cColorF)
+            float sat_cColors = max3 - min3;
+            
+            
+            // setSat(eColorF, sat(cColorF))
+            // setSat(eColorF, sat_cColors)
+            
+            //setSat start
+            float r = b_src.r;
+            float g = b_src.g;
+            float b = b_src.b;
+        
+            if (r >= g && r >= b) {
+                // Cmax = r start
+        
+                if (g >= b) {
+                    // Cmid = g, Cmin = b start
+                    if (r > b) {
+                        g = (((g - b) * sat_cColors) / (r - b));
+                        r = sat_cColors;
+                    } else {
+                        g = 0.0;
+                        r = 0.0;
+                    }
+                    b = 0.0;
+                    // Cmid = g, Cmin = b end
+                } else {
+                    // Cmid = b, Cmin = g start
+                    if (r > g) {
+                        b = (((b - g) * sat_cColors) / (r - g));
+                        r = sat_cColors;
+                    } else {
+                        b = 0.0;
+                        r = 0.0;
+                    }
+                    g = 0.0;
+                    // Cmid = b, Cmin = g end
+                }
+                // Cmax = r end
+            } else if (g >= b && g >= r) {
+                // Cmax = g start
+        
+                if (b >= r) {
+                    // Cmid = b, Cmin = r start
+                    if (g > r) {
+                        b = (((b - r) * sat_cColors) / (g - r));
+                        g = sat_cColors;
+                    } else {
+                        b = 0.0;
+                        g = 0.0;
+                    }
+                    r = 0.0;
+                    // Cmid = b, Cmin = r end
+                } else {
+                    // Cmid = r, Cmin = b start
+                    if (g > b) {
+                        r = (((r - b) * sat_cColors) / (g - b));
+                        g = sat_cColors;
+                    } else {
+                        r = 0.0;
+                        g = 0.0;
+                    }
+                    b = 0.0;
+                    // Cmid = r, Cmin = b end
+                }
+                // Cmax = g end
+            } else if (b >= r && b >= g) {
+                // Cmax = b start
+        
+                if (r >= g) {
+                    // Cmid = r, Cmin = g start
+                    if (b > g) {
+                        r = (((r - g) * sat_cColors) / (b - g));
+                        b = sat_cColors;
+                    } else {
+                        r = 0.0;
+                        b = 0.0;
+                    }
+                    g = 0.0;
+                    // Cmid = r, Cmin = g end
+                } else {
+                    // Cmid = g, Cmin = r start
+                    if (b > r) {
+                        g = (((g - r) * sat_cColors) / (b - r));
+                        b = sat_cColors;
+                    } else {
+                        g = 0.0;
+                        b = 0.0;
+                    }
+                    r = 0.0;
+                    // Cmid = g, Cmin = r end
+                }
+                // Cmax = g end
+            }
+            
+            // vec3 setSat = vec3(r,g,b);
+            //setSat end
+        
+        
+            // setLum start
+            // setLum(setSat, lum_cColors)
+            float lum_rgb = 0.3 * r + 0.59 * g + 0.11 * b;
+            float d = lum_cColors - lum_rgb;
+            r = r + d;
+            g = g + d;
+            b = b + d;
+            
+            //clip start
+            float l = 0.3 * r + 0.59 * g + 0.11 * b;
+            float n = min(r, min(g, b));
+            float x = max(r, max(g, b));
+        
+            if (n < 0.0) {
+                r = l + (((r - l) * l) / (l - n));
+                g = l + (((g - l) * l) / (l - n));
+                b = l + (((b - l) * l) / (l - n));
+            }
+            if (x > 1.0) {
+                r = l + (((r - l) * (1.0 - l)) / (x - l));
+                g = l + (((g - l) * (1.0 - l)) / (x - l));
+                b = l + (((b - l) * (1.0 - l)) / (x - l));
+            }
+            //clip end
+            // setLum start
+
+            result = r;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.r = color;
+            
+            result = g;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.g = color;
+            
+            result = b;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.b = color;
+            `;
+
+
         export const DARKEN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DARKEN_PART.replace(/%rgb%/g, 'r'), DARKEN_PART.replace(/%rgb%/g, 'g'), DARKEN_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [MULTIPLY_PART.replace(/%rgb%/g, 'r'), MULTIPLY_PART.replace(/%rgb%/g, 'g'), MULTIPLY_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const COLOR_BURN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [COLOR_BURN_PART.replace(/%rgb%/g, 'r'), COLOR_BURN_PART.replace(/%rgb%/g, 'g'), COLOR_BURN_PART.replace(/%rgb%/g, 'b')].join('\n'));
@@ -347,6 +500,8 @@ namespace pixi_picture {
         export const EXCLUSION_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [EXCLUSION_PART.replace(/%rgb%/g, 'r'), EXCLUSION_PART.replace(/%rgb%/g, 'g'), EXCLUSION_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const SUBTRACT_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [SUBTRACT_PART.replace(/%rgb%/g, 'r'), SUBTRACT_PART.replace(/%rgb%/g, 'g'), SUBTRACT_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const DIVIDE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DIVIDE_PART.replace(/%rgb%/g, 'r'), DIVIDE_PART.replace(/%rgb%/g, 'g'), DIVIDE_PART.replace(/%rgb%/g, 'b')].join('\n'));
+        export const HUE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HUE_PART);
+
 
         export const blendFullArray: Array<string> = [];
 
@@ -371,6 +526,7 @@ namespace pixi_picture {
         blendFullArray[PIXI.BLEND_MODES.EXCLUSION] = EXCLUSION_FULL;
         blendFullArray[PIXI.BLEND_MODES.SUBTRACT] = SUBTRACT_FULL;
         blendFullArray[PIXI.BLEND_MODES.DIVIDE] = DIVIDE_FULL;
+        blendFullArray[PIXI.BLEND_MODES.HUE] = HUE_FULL;
     }
 
     let filterCache: Array<BlendFilter> = [];
