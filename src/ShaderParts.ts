@@ -684,6 +684,58 @@ namespace pixi_picture {
             `;
 
 
+        //float cColors = b_dest.r + b_dest.g + b_dest.b
+        // float eColors = b_src.r + b_src.g + b_src.b
+        export const LUMINOSITY_PART =
+            `
+            // lum(eColorF)
+            float lum_eColors = 0.3 * b_src.r + 0.59 * b_src.g + 0.11 * b_src.b;
+            
+            // setLum start
+            // setLum(cColorF, lum_eColors)
+            
+            float r = b_dest.r;
+            float g = b_dest.g;
+            float b = b_dest.b;
+            
+            float lum_rgb = 0.3 * r + 0.59 * g + 0.11 * b;
+            float d = lum_eColors - lum_rgb;
+            r = r + d;
+            g = g + d;
+            b = b + d;
+            
+            //clip start
+            float l = 0.3 * r + 0.59 * g + 0.11 * b;
+            float n = min(r, min(g, b));
+            float x = max(r, max(g, b));
+        
+            if (n < 0.0) {
+                r = l + (((r - l) * l) / (l - n));
+                g = l + (((g - l) * l) / (l - n));
+                b = l + (((b - l) * l) / (l - n));
+            }
+            if (x > 1.0) {
+                r = l + (((r - l) * (1.0 - l)) / (x - l));
+                g = l + (((g - l) * (1.0 - l)) / (x - l));
+                b = l + (((b - l) * (1.0 - l)) / (x - l));
+            }
+            //clip end
+            // setLum end
+
+            result = r;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.r = color;
+            
+            result = g;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.g = color;
+            
+            result = b;
+            color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
+            B.b = color;
+            `;
+
+
         export const DARKEN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [DARKEN_PART.replace(/%rgb%/g, 'r'), DARKEN_PART.replace(/%rgb%/g, 'g'), DARKEN_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const MULTIPLY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [MULTIPLY_PART.replace(/%rgb%/g, 'r'), MULTIPLY_PART.replace(/%rgb%/g, 'g'), MULTIPLY_PART.replace(/%rgb%/g, 'b')].join('\n'));
         export const COLOR_BURN_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, [COLOR_BURN_PART.replace(/%rgb%/g, 'r'), COLOR_BURN_PART.replace(/%rgb%/g, 'g'), COLOR_BURN_PART.replace(/%rgb%/g, 'b')].join('\n'));
@@ -708,6 +760,7 @@ namespace pixi_picture {
         export const HUE_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, HUE_PART);
         export const SATURATION_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, SATURATION_PART);
         export const COLOR_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, COLOR_PART);
+        export const LUMINOSITY_FULL = NPM_BLEND.replace(`%NPM_BLEND%`, LUMINOSITY_PART);
 
 
         export const blendFullArray: Array<string> = [];
@@ -736,6 +789,7 @@ namespace pixi_picture {
         blendFullArray[PIXI.BLEND_MODES.HUE] = HUE_FULL;
         blendFullArray[PIXI.BLEND_MODES.SATURATION] = SATURATION_FULL;
         blendFullArray[PIXI.BLEND_MODES.COLOR] = COLOR_FULL;
+        blendFullArray[PIXI.BLEND_MODES.LUMINOSITY] = LUMINOSITY_FULL;
     }
 
     let filterCache: Array<BlendFilter> = [];
