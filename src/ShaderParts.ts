@@ -7,7 +7,7 @@ namespace pixi_picture {
             return;
         }
                
-        float outOp = b_src.a + b_dest.a * (1.0 - b_src.a);
+        float outOp = min(b_src.a + b_dest.a * (1.0 - b_src.a), 1.0);
         vec3 B = b_src.rgb;
         float Cb, Cs, result, color, D;
         if (b_dest.a > 0.0) {
@@ -61,26 +61,38 @@ namespace pixi_picture {
             float eColors = b_src.r + b_src.g + b_src.b;
             if(cColors < eColors) {
                 result = b_dest.r;
+                Cb = b_dest.r;
+                Cs = b_src.r;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.r = color;
                 
                 result = b_dest.g;
+                Cb = b_dest.g;
+                Cs = b_src.g;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.g = color;
                 
                 result = b_dest.b;
+                Cb = b_dest.b;
+                Cs = b_src.b;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.b = color;
             } else {
                 result = b_src.r;
+                Cb = b_dest.r;
+                Cs = b_src.r;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.r = color;
                 
                 result = b_src.g;
+                Cb = b_dest.g;
+                Cs = b_src.g;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.g = color;
                 
                 result = b_src.b;
+                Cb = b_dest.b;
+                Cs = b_src.b;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.b = color;
             }`;
@@ -124,26 +136,38 @@ namespace pixi_picture {
             float eColors = b_src.r + b_src.g + b_src.b;
             if(cColors > eColors) {
                 result = b_dest.r;
+                Cb = b_dest.r;
+                Cs = b_src.r;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.r = color;
                 
                 result = b_dest.g;
+                Cb = b_dest.g;
+                Cs = b_src.g;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.g = color;
                 
                 result = b_dest.b;
+                Cb = b_dest.b;
+                Cs = b_src.b;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.b = color;
             } else {
                 result = b_src.r;
+                Cb = b_dest.r;
+                Cs = b_src.r;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.r = color;
                 
                 result = b_src.g;
+                Cb = b_dest.g;
+                Cs = b_src.g;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.g = color;
                 
                 result = b_src.b;
+                Cb = b_dest.b;
+                Cs = b_src.b;
                 color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
                 B.b = color;
             }`;
@@ -466,14 +490,20 @@ namespace pixi_picture {
             // setLum start
 
             result = r;
+            Cb = b_dest.r;
+            Cs = b_src.r;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.r = color;
             
             result = g;
+            Cb = b_dest.g;
+            Cs = b_src.g;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.g = color;
             
             result = b;
+            Cb = b_dest.b;
+            Cs = b_src.b;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.b = color;
             `;
@@ -619,14 +649,20 @@ namespace pixi_picture {
             // setLum end
 
             result = r;
+            Cb = b_dest.r;
+            Cs = b_src.r;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.r = color;
             
             result = g;
+            Cb = b_dest.g;
+            Cs = b_src.g;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.g = color;
             
             result = b;
+            Cb = b_dest.b;
+            Cs = b_src.b;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.b = color;
             `;
@@ -671,14 +707,20 @@ namespace pixi_picture {
             // setLum end
 
             result = r;
+            Cb = b_dest.r;
+            Cs = b_src.r;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.r = color;
             
             result = g;
+            Cb = b_dest.g;
+            Cs = b_src.g;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.g = color;
             
             result = b;
+            Cb = b_dest.b;
+            Cs = b_src.b;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.b = color;
             `;
@@ -723,14 +765,20 @@ namespace pixi_picture {
             // setLum end
 
             result = r;
+            Cb = b_dest.r;
+            Cs = b_src.r;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.r = color;
             
             result = g;
+            Cb = b_dest.g;
+            Cs = b_src.g;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.g = color;
             
             result = b;
+            Cb = b_dest.b;
+            Cs = b_src.b;
             color = (1.0 - b_src.a / outOp) * Cb + b_src.a / outOp * ((1.0 - b_dest.a) * Cs + b_dest.a * result);
             B.b = color;
             `;
